@@ -9,7 +9,7 @@ const NodeCache = require('node-cache')
 var app = express();
 
 const resultados = {
-    pessoas: [{id:1, nome: "Marcelo"}, {id:2, nome: "João"}, {id:3, nome: "Maria"}],
+    pessoas: [{id:1, nome: "renan"}, {id:2, nome: "João"}, {id:3, nome: "Maria"}],
     carros: [{id:1, modelo: "Fusca"}, {id:2, modelo: "Gol"}, {id:3, modelo: "celta"}],
     animais: [{id:1, nome: "Cachorro"}, {id:2, nome: "Gato"}, {id:3, nome: "Papagaio"}]
   }
@@ -43,14 +43,17 @@ app.get('/:resource', (req, res) => {
     const resourceData = resultados[resource];
     const etag = ETagCalc(resourceData);
     const cachedETag = cache.get('cachedETag_' + resource);
+    console.log(`${cachedETag}`)
 
-    if(cachedETag && req.headers['if-none-match'] === cachedETag){
+    if(cachedETag && req.headers["if-none-match"] === cachedETag){
         res.status(304).send();
+        console.log(`304 sended`)
     }else{
         cache.set('cachedETag_'+ resource, etag);
 
         res.setHeader('ETag', etag);
         res.json(resourceData);
+        console.log(`${resource}`)
     }
     });
 
