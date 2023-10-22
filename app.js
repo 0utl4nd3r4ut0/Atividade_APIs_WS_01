@@ -41,6 +41,7 @@ app.get('/:resource', (req, res) => {
         return;
     }
     const resourceData = resultados[resource];
+    
     const etag = ETagCalc(resourceData);
     const cachedETag = cache.get('cachedETag_' + resource);
     console.log(`${cachedETag}`)
@@ -56,6 +57,35 @@ app.get('/:resource', (req, res) => {
         console.log(`${resource}`)
     }
     });
+
+app.get('/:resource/:id', (req, res) => {
+    const resource = req.params.resource;
+    const id = parseInt(req.params.id);
+
+    if (!resultados[resource]) {
+        res.status(404).send('Recurso não encontrado');
+        return;
+    }
+
+    const resourceData = resultados[resource].find(item => item.id === id);
+
+    if (!resourceData) {
+        res.status(404).send('ID não encontrado');
+        return;
+    }
+
+    const etag = ETagCalc(resourceData);
+    const cachedETag = cache.get('cachedETag_' + resource + id);
+
+    if (cachedETag && req.headers["if-none-match"] === cachedETag) {
+        res.status(304).send();
+    } else {
+        cache.set('cachedETag_' + resource + id, etag);
+
+        res.setHeader('ETag', etag);
+        res.json(resourceData);
+    }
+});
 
 server.listen(port, () => {
     console.log(`servidor HTTPS rodando em https://localhost:${port}`);
